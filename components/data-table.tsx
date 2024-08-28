@@ -34,6 +34,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const table = useReactTable({
     data,
     columns,
+
     state: {
       sorting,
       columnVisibility,

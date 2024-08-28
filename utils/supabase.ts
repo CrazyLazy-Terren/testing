@@ -1,28 +1,89 @@
 import { createClient } from '@supabase/supabase-js'
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
-export type Item = { created_at: string; id: number; img: string | null; size: number | null; text: string | null }
-
 export type Database = {
   public: {
     Tables: {
-      item: {
-        Row: Item
+      attributes: {
+        Row: {
+          attribute_id: number
+          attribute_name: string
+          attribute_type: string
+          sort_order: number | null
+        }
         Insert: {
-          created_at?: string
-          id?: number
-          img?: string | null
-          size?: number | null
-          text?: string | null
+          attribute_id?: number
+          attribute_name: string
+          attribute_type: string
+          sort_order?: number | null
         }
         Update: {
-          created_at?: string
-          id?: number
-          img?: string | null
-          size?: number | null
-          text?: string | null
+          attribute_id?: number
+          attribute_name?: string
+          attribute_type?: string
+          sort_order?: number | null
         }
         Relationships: []
+      }
+      entities: {
+        Row: {
+          entity_id: number
+          entity_name: string
+        }
+        Insert: {
+          entity_id?: number
+          entity_name: string
+        }
+        Update: {
+          entity_id?: number
+          entity_name?: string
+        }
+        Relationships: []
+      }
+      values: {
+        Row: {
+          attribute_id: number | null
+          entity_id: number | null
+          row_order: number | null
+          value_boolean: boolean | null
+          value_id: number
+          value_number: number | null
+          value_text: string | null
+        }
+        Insert: {
+          attribute_id?: number | null
+          entity_id?: number | null
+          row_order?: number | null
+          value_boolean?: boolean | null
+          value_id?: number
+          value_number?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          attribute_id?: number | null
+          entity_id?: number | null
+          row_order?: number | null
+          value_boolean?: boolean | null
+          value_id?: number
+          value_number?: number | null
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'values_attribute_id_fkey'
+            columns: ['attribute_id']
+            isOneToOne: false
+            referencedRelation: 'attributes'
+            referencedColumns: ['attribute_id']
+          },
+          {
+            foreignKeyName: 'values_entity_id_fkey'
+            columns: ['entity_id']
+            isOneToOne: false
+            referencedRelation: 'entities'
+            referencedColumns: ['entity_id']
+          }
+        ]
       }
     }
     Views: {
