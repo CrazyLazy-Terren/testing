@@ -8,7 +8,7 @@ import { Trash2 } from 'lucide-react'
 import { supabase } from '@/utils/supabase'
 
 import { Button } from '@/components/ui/button'
-import TableHeader from '@/components/TableHeaer'
+
 import TextInput from '@/components/TextInput'
 import { deboundce } from '@/lib/utils'
 const columnHelper = createColumnHelper()
@@ -69,7 +69,6 @@ const MainView = ({ initData, initAttriute }) => {
               return info.renderValue()
             }
           },
-          header: (info) => <TableHeader text={attr.attribute_name} attr={attr} attribute={attribute} />,
         })
       }),
       columnHelper.accessor('__action', {
@@ -78,7 +77,6 @@ const MainView = ({ initData, initAttriute }) => {
             <Trash2 />
           </Button>
         ),
-        header: () => <TableHeader text="Action" />,
       }),
     ],
     [attribute]
@@ -101,7 +99,7 @@ const MainView = ({ initData, initAttriute }) => {
                 }
                 setData([...data])
               } else {
-                setData([...data, payload.new as Item])
+                setData([...data, payload.new])
               }
               break
           }
