@@ -4,17 +4,17 @@ import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-const memoize = new Map()
 
-export const deboundce = (fn: () => void, id: string, time: number = 1000) => {
-  if (memoize.has(id)) {
-    clearTimeout(memoize.get(id))
+const memo = new Map()
+export const deboundce = (fn: Function, key: string, time: number = 1000) => {
+  if (memo.has(key)) {
+    clearTimeout(memo.get(key))
   }
-  memoize.set(
-    id,
+  memo.set(
+    key,
     setTimeout(() => {
       fn()
-      memoize.delete(id)
+      memo.delete(key)
     }, time)
   )
 }

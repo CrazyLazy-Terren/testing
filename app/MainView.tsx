@@ -2,8 +2,6 @@
 import { DataTable } from '@/components/data-table'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useEffect, useMemo, useState } from 'react'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
 import { Trash2 } from 'lucide-react'
 import { supabase } from '@/utils/supabase'
 
@@ -130,9 +128,7 @@ const MainView = ({ initData, initAttriute }) => {
 
   return (
     <div className="w-full h-full">
-      <DndProvider backend={HTML5Backend}>
-        <DataTable data={arraData} columns={columns} />
-      </DndProvider>
+      <DataTable data={arraData} columns={columns} />
     </div>
   )
 }
