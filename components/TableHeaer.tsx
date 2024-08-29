@@ -1,9 +1,12 @@
+import React, { useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { supabase } from '@/utils/supabase'
+import { cn } from '@/lib/utils'
 
 const BoxType = 'BOX'
 
 const TableHeader = ({ text, attr, attribute = [] }) => {
+  const [pending, setPending] = useState(false)
   const [{ canDrop, isOver }, drop] = useDrop(() => ({
     accept: BoxType,
     // Props to collect
@@ -20,7 +23,7 @@ const TableHeader = ({ text, attr, attribute = [] }) => {
       isDragging: monitor.isDragging(),
     }),
     end: async (item, monitor) => {
-      if (monitor.didDrop()) {
+      if (monitor.didDrop() && !pending) {
         const dropResult = monitor.getDropResult()
         // When drop is done
         console.log('Dropped', item, dropResult)
@@ -31,15 +34,20 @@ const TableHeader = ({ text, attr, attribute = [] }) => {
         newOrder.splice(index, 1)
         newOrder.splice(newIndex, 0, attr)
         console.log(newOrder)
+        setPending(true)
         const { data } = await supabase.from('attributes').upsert(newOrder.map((a, index) => ({ ...a, sort_order: index })))
-
-        console.log(data)
+        setPending(false)
       }
     },
   }))
   return (
-    <div ref={drop} className={'flex justify-center items-center h-full border-l-2 ' + (isOver ? 'border-color-blue-500' : 'border-transparent')}>
-      <div ref={drag} className={'p-2 ' + (isDragging && ' opacity-50	border-slate-800 border-spacing-1')}>
+    <div
+      ref={drop}
+      className={cn('flex justify-center items-center h-full ', {
+        'bg-blue-100': isOver && !pending,
+        ' opacity-50	': isDragging,
+      })}>
+      <div ref={drag} className="p-2 w-full">
         {text}
       </div>
     </div>
