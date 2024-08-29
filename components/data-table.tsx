@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
 
 import {
   ColumnDef,
@@ -54,11 +54,11 @@ const DragAlongCell = ({ cell }) => {
   )
 }
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map((c) => c.accessorKey))
+  const [rowSelection, setRowSelection] = useState({})
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnOrder, setColumnOrder] = useState<string[]>(() => columns.map((c) => c.accessorKey))
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(TouchSensor),
@@ -78,7 +78,6 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       columnFilters,
     },
     onColumnOrderChange: setColumnOrder,
-    debugTable: true,
 
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -105,6 +104,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       })
     }
   }
+
   return (
     <DndContext sensors={sensors} modifiers={[restrictToHorizontalAxis]} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="space-y-4">
