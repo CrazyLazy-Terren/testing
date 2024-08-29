@@ -3,7 +3,7 @@ import { supabase } from '@/utils/supabase'
 
 const BoxType = 'BOX'
 
-const TableHeader = ({ text, attr }) => {
+const TableHeader = ({ text, attr, attribute = [] }) => {
   const [{ canDrop, isOver }, drop] = useDrop(() => ({
     accept: BoxType,
     // Props to collect
@@ -24,17 +24,21 @@ const TableHeader = ({ text, attr }) => {
         const dropResult = monitor.getDropResult()
         // When drop is done
         console.log('Dropped', item, dropResult)
-        const { data } = await supabase
-          .from('attributes')
-          .update({ sort_order: dropResult?.attr?.sort_order || 0 })
-          .eq('attribute_id', attr.attribute_id)
-          .select()
+        const index = attribute.findIndex((a) => a.attribute_id === attr.attribute_id)
+        const newIndex = attribute.findIndex((a) => a.attribute_id === dropResult?.attr?.attribute_id) || 0
+
+        const newOrder = [...attribute]
+        newOrder.splice(index, 1)
+        newOrder.splice(newIndex, 0, attr)
+        console.log(newOrder)
+        const { data } = await supabase.from('attributes').upsert(newOrder.map((a, index) => ({ ...a, sort_order: index })))
+
         console.log(data)
       }
     },
   }))
   return (
-    <div ref={drop} className={'flex justify-center items-center h-full border-r-2 ' + (isOver ? 'border-color-blue-500' : 'border-transparent')}>
+    <div ref={drop} className={'flex justify-center items-center h-full border-l-2 ' + (isOver ? 'border-color-blue-500' : 'border-transparent')}>
       <div ref={drag} className={'p-2 ' + (isDragging && ' opacity-50	border-slate-800 border-spacing-1')}>
         {text}
       </div>

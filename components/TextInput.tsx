@@ -1,21 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { supabase } from '@/utils/supabase'
-
-const memoize = new Map()
-
-const deboundce = (fn: () => void, id: string) => {
-  if (memoize.has(id)) {
-    clearTimeout(memoize.get(id))
-  }
-  memoize.set(
-    id,
-    setTimeout(() => {
-      fn()
-      memoize.delete(id)
-    }, 1000)
-  )
-}
+import { deboundce } from '@/lib/utils'
 
 const TextInput = ({
   value,

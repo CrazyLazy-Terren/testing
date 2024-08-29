@@ -1,9 +1,11 @@
 'use client'
 
 import * as React from 'react'
+
 import {
   ColumnDef,
   ColumnFiltersState,
+  ColumnOrderState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -30,6 +32,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
+  // const [columnOrder,setColumnOrder] = React.useState<ColumnOrderState>(columnOrder)
 
   const table = useReactTable({
     data,
@@ -53,6 +56,11 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
+
+  React.useEffect(() => {
+    table.setColumnOrder(columns.map((column) => column.id || ''))
+    console.log('columnOrder', columns)
+  }, [columns, table])
 
   return (
     <div className="space-y-4">
