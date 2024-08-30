@@ -1,10 +1,12 @@
 'use client'
 
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, ReactElement } from 'react'
 
 import {
+  Cell,
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -17,7 +19,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, TouchSensor } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, TouchSensor, UniqueIdentifier } from '@dnd-kit/core'
 import {
   arrayMove,
   horizontalListSortingStrategy,
@@ -35,15 +37,17 @@ import TableHead from '@/components/TableHead'
 
 import { DataTablePagination } from './data-table-pagination'
 import { toast } from 'sonner'
-
+import { type RowData } from '@/app/MainView'
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  moveRow: (fromId: UniqueIdentifier, toId: UniqueIdentifier) => Promise<void>
+  moveAttribute: (fromName: UniqueIdentifier, toName: UniqueIdentifier) => Promise<void>
 }
 
-const DraggableRow = ({ row, children, ...rest }) => {
+const DraggableRow = ({ row, children, ...rest }: { row: Row<RowData>; children: ReactElement; [key: string]: any }) => {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.entity_id,
+    id: row.original.entity_id ?? '',
   })
   return (
     <TableRow
@@ -61,9 +65,9 @@ const DraggableRow = ({ row, children, ...rest }) => {
   )
 }
 
-const DragAlongCell = ({ cell }) => {
+const DragAlongCell = ({ cell }: { cell: Cell<RowData, any> }) => {
   const { isDragging, setNodeRef, transform } = useSortable({
-    id: cell.column.id,
+    id: cell.column.id ?? '',
   })
 
   return (
@@ -83,11 +87,12 @@ const DragAlongCell = ({ cell }) => {
   )
 }
 
-export default function DataTable<TData, TValue>({ columns, data, moveRow, moveAttribute }: DataTableProps<TData, TValue>) {
+export default function DataTable<TData, TValue>({ columns, data, moveRow, moveAttribute }: DataTableProps<RowData, TValue>) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
+  /* @ts-expect-error */
   const [columnOrder, setColumnOrder] = useState<string[]>(() => columns.map((c) => c.accessorKey))
 
   const pointerSenor = useSensors(useSensor(PointerSensor))
@@ -124,7 +129,7 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    getRowId: (row) => row.entity_id,
+    getRowId: (row) => String(row.entity_id),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -133,24 +138,24 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
-  const dataIds = useMemo(() => data.map((d) => d.entity_id), [data])
+  const dataIds = useMemo(() => data.map((d) => String(d.entity_id)), [data])
 
   function handleRowDragEnd(event: DragEndEvent) {
     const { active, over } = event
 
-    if (active.id !== over?.id) {
+    if (active.id !== over?.id && over) {
       console.log('active', active.id, 'over', over?.id)
-      moveRow(active.id, over?.id)
+      moveRow(active.id, over.id)
     }
   }
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
 
-    if (active.id !== over?.id) {
+    if (active.id !== over?.id && over) {
       console.log('active', active.id, 'over', over.id)
       const msg = toast.info('Moving attribute...')
-      await moveAttribute(active.id, over?.id)
+      await moveAttribute(active.id, over.id)
       toast.dismiss(msg)
       setColumnOrder((columnOrder) => {
         const oldIndex = columnOrder.indexOf(active.id as string)
@@ -195,11 +200,13 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <DraggableRow key={row.id} row={row} data-state={row.getIsSelected() && 'selected'}>
-                      {row.getVisibleCells().map((cell) => (
-                        <SortableContext key={cell.id} items={columnOrder} strategy={horizontalListSortingStrategy}>
-                          <DragAlongCell key={cell.id} cell={cell} />
-                        </SortableContext>
-                      ))}
+                      <>
+                        {row.getVisibleCells().map((cell) => (
+                          <SortableContext key={cell.id} items={columnOrder} strategy={horizontalListSortingStrategy}>
+                            <DragAlongCell cell={cell} />
+                          </SortableContext>
+                        ))}
+                      </>
                     </DraggableRow>
                   ))
                 ) : (

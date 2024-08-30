@@ -11,7 +11,7 @@ export default async function Home() {
     <>
       <Toaster position="top-center" richColors />
       <main className="flex min-h-screen w-svw flex-col items-center justify-between p-24">
-        <MainView initData={data || []} initAttriute={attrData} />
+        <MainView initData={data || []} initAttriute={attrData || []} />
       </main>
     </>
   )

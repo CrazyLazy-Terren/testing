@@ -3,15 +3,23 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Trash2 } from 'lucide-react'
-import { supabase } from '@/utils/supabase'
+import { supabase, type Tables } from '@/utils/supabase'
 import { useSortable } from '@dnd-kit/sortable'
 import { Button } from '@/components/ui/button'
 
 import TextInput from '@/components/TextInput'
 import { deboundce } from '@/lib/utils'
 import { toast } from 'sonner'
+import { UniqueIdentifier } from '@dnd-kit/core'
 const DataTable = dynamic(() => import('@/components/DataTable'), { ssr: false })
-const columnHelper = createColumnHelper()
+
+export type RowData = {
+  entity_id: number | null
+  row_order: number | null
+  [propName: string]: any
+}
+
+const columnHelper = createColumnHelper<RowData>()
 
 const RowDragHandleCell = ({ rowId }: { rowId: string }) => {
   const { attributes, listeners } = useSortable({
@@ -25,7 +33,7 @@ const RowDragHandleCell = ({ rowId }: { rowId: string }) => {
   )
 }
 
-const MainView = ({ initData, initAttriute }) => {
+const MainView = ({ initData = [], initAttriute = [] }: { initData: Tables<'values'>[]; initAttriute: Tables<'attributes'>[] }) => {
   const [data, setData] = useState(initData)
   const [attribute, setAttribute] = useState(initAttriute)
 
@@ -43,7 +51,7 @@ const MainView = ({ initData, initAttriute }) => {
   )
 
   const arraData = useMemo(() => {
-    const dataArr: Record<string, any>[] = []
+    const dataArr: RowData[] = []
     // combine the entity data into one row
     ;(data || []).forEach((row) => {
       const lastRow = dataArr[dataArr.length - 1]
@@ -82,8 +90,8 @@ const MainView = ({ initData, initAttriute }) => {
                 <TextInput
                   value={info.getValue() || ''}
                   id={{
-                    entity_id: info.row.original.entity_id,
-                    attribute_id: attr.attribute_id,
+                    entity_id: info.row.original.entity_id || 0,
+                    attribute_id: String(attr.attribute_id),
                   }}
                 />
               )
@@ -99,8 +107,14 @@ const MainView = ({ initData, initAttriute }) => {
           <Button
             onClick={async () => {
               console.log('delete', info.row.original)
-              await supabase.from('values').delete().eq('entity_id', info.row.original.entity_id)
-              await supabase.from('entities').delete().eq('entity_id', info.row.original.entity_id)
+              await supabase
+                .from('values')
+                .delete()
+                .eq('entity_id', info.row.original.entity_id ?? 0)
+              await supabase
+                .from('entities')
+                .delete()
+                .eq('entity_id', info.row.original.entity_id ?? 0)
             }}
             variant="outline"
             size="icon">
@@ -166,7 +180,7 @@ const MainView = ({ initData, initAttriute }) => {
   }, [data, setData])
 
   const moveAttribute = useCallback(
-    async (fromName: string, toName: string) => {
+    async (fromName: UniqueIdentifier, toName: UniqueIdentifier) => {
       const fromIndex = attribute.findIndex((item) => item.attribute_name === fromName)
       const toIndex = attribute.findIndex((item) => item.attribute_name === toName)
       const newArr = [...attribute]
@@ -188,7 +202,7 @@ const MainView = ({ initData, initAttriute }) => {
   )
 
   const moveRow = useCallback(
-    async (fromId, toId) => {
+    async (fromId: UniqueIdentifier, toId: UniqueIdentifier) => {
       const fromIndex = arraData.findIndex((item) => item.entity_id === fromId)
       const toIndex = arraData.findIndex((item) => item.entity_id === toId)
       if (fromIndex === -1 || toIndex === -1) {
@@ -197,7 +211,7 @@ const MainView = ({ initData, initAttriute }) => {
       console.log('from', fromIndex, 'to', toIndex)
       const newArr = [...arraData]
       newArr.splice(fromIndex, 1)
-      const newOrder = (parseFloat(arraData[toIndex].row_order) + (arraData[toIndex - 1]?.row_order || 0)) / 2
+      const newOrder = (arraData[toIndex].row_order || 0 + (arraData[toIndex - 1]?.row_order || 0)) / 2
       newArr.splice(toIndex, 0, {
         ...arraData[fromIndex],
         row_order: newOrder,
@@ -210,18 +224,21 @@ const MainView = ({ initData, initAttriute }) => {
               entity_id: item.entity_id,
               value_text: item[key],
               row_order: item.row_order,
+              value_boolean: null,
+              value_date: null,
             }
           })
           .filter((item) => item.attribute_id)
       })
       console.log('newData', newData)
-      setData(newData)
+
+      setData(newData as any)
       await supabase
         .from('values')
         .update({
           row_order: newOrder,
         })
-        .eq('entity_id', arraData[fromIndex].entity_id)
+        .eq('entity_id', arraData[fromIndex].entity_id ?? 0)
 
       toast.success('Row moved successfully')
     },
