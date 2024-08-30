@@ -6,6 +6,7 @@ export default async function Home() {
   const supabase = createClient()
   const { data: attrData } = await supabase.from('attributes').select('*').order('sort_order', { ascending: true })
   const { data } = await supabase.from('values').select('*').order('row_order', { ascending: true })
+  
 
   return (
     <>

@@ -18,7 +18,7 @@ export type RowData = {
   row_order: number | null
   [propName: string]: any
 }
-
+const max = (arr: number[]) => Math.max(...arr)
 const columnHelper = createColumnHelper<RowData>()
 
 const RowDragHandleCell = ({ rowId }: { rowId: string }) => {
@@ -211,7 +211,7 @@ const MainView = ({ initData = [], initAttriute = [] }: { initData: Tables<'valu
       console.log('from', fromIndex, 'to', toIndex)
       const newArr = [...arraData]
       newArr.splice(fromIndex, 1)
-      const newOrder = (arraData[toIndex].row_order || 0 + (arraData[toIndex - 1]?.row_order || 0)) / 2
+      const newOrder = ((arraData[toIndex].row_order || 0) + (arraData[toIndex - 1]?.row_order || 0)) / 2
       newArr.splice(toIndex, 0, {
         ...arraData[fromIndex],
         row_order: newOrder,
@@ -250,14 +250,15 @@ const MainView = ({ initData = [], initAttriute = [] }: { initData: Tables<'valu
       <Button
         className="mb-4"
         onClick={async () => {
+          const entity_id = max(data.map((d) => d.entity_id ?? 0)) + 1
           const last = arraData[arraData.length - 1]
-          const entity_id = last?.entity_id
-          if (entity_id) {
-            await supabase.from('entities').insert({ entity_id: entity_id + 1, entity_name: 'new entity' })
+          const row_order = last?.row_order
+          if (row_order) {
+            await supabase.from('entities').insert({ entity_id: entity_id, entity_name: 'new entity' })
             await supabase.from('values').upsert(
               attribute.map((attr) => ({
-                row_order: last.row_roder + 1,
-                entity_id: entity_id + 1,
+                row_order: row_order + 2,
+                entity_id: entity_id,
                 attribute_id: attr.attribute_id,
                 value_text: '',
               }))

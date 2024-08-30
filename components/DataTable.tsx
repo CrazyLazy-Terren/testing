@@ -129,7 +129,8 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    getRowId: (row) => String(row.entity_id),
+    /* @ts-expect-error: use entity_id type number */
+    getRowId: (row) => row.entity_id,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -138,13 +139,13 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
-  const dataIds = useMemo(() => data.map((d) => String(d.entity_id)), [data])
+  const dataIds = useMemo(() => data.map((d) => d.entity_id as UniqueIdentifier), [data])
 
   function handleRowDragEnd(event: DragEndEvent) {
     const { active, over } = event
 
+    console.log('active', active.id, 'over', over?.id)
     if (active.id !== over?.id && over) {
-      console.log('active', active.id, 'over', over?.id)
       moveRow(active.id, over.id)
     }
   }
@@ -203,7 +204,7 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
                       <>
                         {row.getVisibleCells().map((cell) => (
                           <SortableContext key={cell.id} items={columnOrder} strategy={horizontalListSortingStrategy}>
-                            <DragAlongCell cell={cell} />
+                            <DragAlongCell key={row.id} cell={cell} />
                           </SortableContext>
                         ))}
                       </>
