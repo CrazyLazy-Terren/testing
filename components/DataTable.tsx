@@ -92,7 +92,7 @@ export default function DataTable<TData, TValue>({ columns, data, moveRow, moveA
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
-  /* @ts-expect-error */
+  /* @ts-expect-error: do have accessorKey */
   const [columnOrder, setColumnOrder] = useState<string[]>(() => columns.map((c) => c.accessorKey))
 
   const pointerSenor = useSensors(useSensor(PointerSensor))

@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 
-import { cn } from '@/lib/utils'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { TableHead } from '@/components/ui/table'
+import { Header } from '@tanstack/react-table'
+import { type RowData } from '@/app/MainView'
 
-const TableHeader = ({ header, children }) => {
+const TableHeader = ({ header, children }: { header: Header<RowData, any>; children: React.ReactNode }) => {
   const { attributes, isDragging, listeners, setNodeRef, transform, transition } = useSortable({ id: header.column.id })
   return (
     <TableHead
