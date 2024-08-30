@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase.server'
 import MainView from './MainView'
+import { Toaster } from '@/components/ui/sonner'
 
 export default async function Home() {
   const supabase = createClient()
@@ -7,8 +8,11 @@ export default async function Home() {
   const { data } = await supabase.from('values').select('*').order('row_order', { ascending: true })
 
   return (
-    <main className="flex min-h-screen w-svw flex-col items-center justify-between p-24">
-      <MainView initData={data || []} initAttriute={attrData} />
-    </main>
+    <>
+      <Toaster position="top-center" richColors />
+      <main className="flex min-h-screen w-svw flex-col items-center justify-between p-24">
+        <MainView initData={data || []} initAttriute={attrData} />
+      </main>
+    </>
   )
 }
