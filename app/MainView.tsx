@@ -251,16 +251,16 @@ const MainView = ({ initData = [], initAttriute = [] }: { initData: Tables<'valu
         className="mb-4"
         onClick={async () => {
           const entity_id = max(data.map((d) => d.entity_id ?? 0)) + 1
-          const last = arraData[arraData.length - 1]
-          const row_order = last?.row_order
+          const first = arraData[0]
+          const row_order = first?.row_order
           if (row_order) {
             await supabase.from('entities').insert({ entity_id: entity_id, entity_name: 'new entity' })
             await supabase.from('values').upsert(
               attribute.map((attr) => ({
-                row_order: row_order + 2,
+                row_order: (first.row_order ?? 0) - 1,
                 entity_id: entity_id,
                 attribute_id: attr.attribute_id,
-                value_text: '',
+                value_text: attr.attribute_id == 2 ? new Date().toISOString() : '',
               }))
             )
           }
